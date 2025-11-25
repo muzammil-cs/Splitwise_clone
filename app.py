@@ -5,7 +5,7 @@ from decimal import Decimal
 import os
 
 from extensions import db, login_manager
-from models import User, Expense, ExpenseParticipant
+from models import User, Expense, ExpenseParticipant, Notification
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.getenv('SECRET_KEY')
@@ -56,7 +56,7 @@ def login():
         if user and user.check_password(password):
             login_user(user)
             flash(f"Welcome {user.username}, you logged in successfully", "success")
-            return redirect(url_for('home'))
+            return redirect(url_for('dashboard'))
         else:
             flash("Invalid credentials", "danger")
             return redirect(url_for('login'))
@@ -76,8 +76,7 @@ def home():
     recent_expenses = []
     if current_user.is_authenticated:
         recent_expenses = Expense.query.order_by(Expense.id.desc()).limit(5).all()
-    return render_template('home.html', recent_expenses=recent_expenses)
-
+    return redirect(url_for('dashboard'))
 
 
 @app.route('/dashboard')
@@ -122,6 +121,14 @@ def dashboard():
     # Calculate totals
     you_are_owed = sum(p['amount'] for e in paid_expenses for p in e['participants'] if not p['paid'])
     you_owe = sum(o['amount'] for o in owes_expenses if not o['paid'])
+
+    unread = Notification.query.filter_by(user_id=current_user.id, read=False).order_by(Notification.created_at.asc()).all()
+    for n in unread:
+    
+        flash(n.message, 'info')
+        n.read = True
+    if unread:
+        db.session.commit()
 
     return render_template(
         'dashboard.html',
@@ -240,6 +247,33 @@ def delete_expense(expense_id):
         return redirect(url_for('dashboard'))
 
     return render_template('delete_expense.html', expense=expense)
+
+
+@app.route('/expense/<int:expense_id>/remind' , methods = ['POST'])
+@login_required
+def remind_participants(expense_id):
+    expense=Expense.query.get_or_404(expense_id)
+
+    if current_user.id != expense.payer_id:
+        flash("you are not allowed to send notification")
+        return redirect('dashboard')
+    created=0
+    for p in expense.participants:
+
+        if p.user_id == expense.payer_id:
+            continue
+        msg = f"Reminder: please settle your share for '{expense.title}' — amount: {p.amount} {expense.currency}."
+        notif = Notification(user_id=p.user_id, message=msg , read=False)
+        db.session.add(notif)
+        created += 1
+
+    db.session.commit()
+    flash(f"Reminder sent to {created} participant(s).", "success")
+    return redirect(url_for('dashboard'))
+
+
+
+
 
 
 @app.route('/expense/<int:expense_id>/pay', methods=['POST'])

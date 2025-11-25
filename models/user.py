@@ -13,6 +13,8 @@ class User(UserMixin, db.Model):
 
     paid_expenses = db.relationship('Expense', back_populates='payer', lazy='dynamic')
     participations = db.relationship('ExpenseParticipant', back_populates='user', lazy='dynamic')
+    notifications = db.relationship('Notification', back_populates='user', lazy='dynamic', cascade='all, delete-orphan')
+
 
     def set_password(self, password):
         self.password_hash = generate_password_hash(password)

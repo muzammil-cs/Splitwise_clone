@@ -65,6 +65,10 @@
       padding: 12px;
       margin-bottom: 12px;
       color: #fff;
+      display: grid;
+      grid-template-columns: 2fr 3fr 2fr 2fr 1fr 3fr;
+      align-items: center;
+      gap: 10px;
       transition: transform 0.2s ease, background 0.2s ease;
     }
     .table-row-card:hover {
@@ -87,7 +91,7 @@
     }
 
     .small-note { color: rgba(255,255,255,0.7); font-size: 0.9rem; }
-    .btn-outline-light, .btn-outline-danger { border-radius: 999px; font-size: 0.85rem; padding: 4px 12px; }
+    .btn-outline-light, .btn-outline-danger, .btn-outline-info { border-radius: 999px; font-size: 0.85rem; padding: 4px 12px; margin-right:5px; }
 
     .list-group-item { border-radius: 12px; transition: background 0.2s ease; }
     .list-group-item:hover { background: rgba(255,255,255,0.03); }
@@ -95,74 +99,105 @@
     @media (max-width: 767px) {
       .avatar { width:36px;height:36px;font-size:0.85rem;border-radius:10px; }
       .top-summary .col { margin-bottom:12px; }
+      .table-row-card { display: flex; flex-direction: column; gap: 5px; }
+    }
+
+    .flash-message {
+      padding: 10px 18px;
+      border-radius: 10px;
+      font-weight: 600;
+      margin-bottom: 10px;
+      color: #fff;
+    }
+
+    /* TOP NAV BAR */
+    .top-nav {
+      background: rgba(255,255,255,0.05);
+      border-radius: 12px;
+      padding: 15px 20px;
+      margin-bottom: 25px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: relative;
+    }
+    .top-nav h1 {
+      margin:0;
+      font-size:1.2rem;
+    }
+    .top-nav .muted {
+      font-size: 0.85rem;
+    }
+    .top-nav .btn {
+      font-size: 0.85rem;
+      border-radius: 999px;
+      padding: 6px 12px;
+      color: #000;
     }
   </style>
 </head>
 <body>
-
-       {% with messages = get_flashed_messages(with_categories=true) %}
-    {% if messages %}
-        <div style="position: fixed; top: 20px; right: 20px; z-index: 9999;">
-        {% for category, message in messages %}
-            {% set bg_color = '' %}
-            {% if category == 'success' %}
-            {% set bg_color = 'linear-gradient(135deg, #34d399, #06b6d4)' %}
-            {% elif category == 'danger' %}
-            {% set bg_color = 'linear-gradient(135deg, #ff5f6d, #ffc371)' %}
-            {% endif %}
-            <div class="flash-message" style="background: '{{ bg_color }}';">
-                {{ message }}
-            </div>
-
-        {% endfor %}
-        </div>
-    {% endif %}
-    {% endwith %}
-
 <div class="app-container">
-  <!-- Header -->
-  <div class="d-flex justify-content-between align-items-center mb-4">
+
+  <!-- Flash Messages -->
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      <div style="position: fixed; top: 20px; right: 20px; z-index: 9999;">
+        {% for category, message in messages %}
+          {% set bg_color = 'linear-gradient(135deg, #34d399, #06b6d4)' if category=='success' else 'linear-gradient(135deg, #ff5f6d, #ffc371)' %}
+          <div class="flash-message" style="background: {{ bg_color }};">
+            {{ message }}
+          </div>
+        {% endfor %}
+      </div>
+    {% endif %}
+  {% endwith %}
+
+  <!-- Top Navigation Bar -->
+  <div class="top-nav">
     <div>
-      <h1 class="h4 mb-0">Dashboard</h1>
-      <div class="muted">Overview · Manage your expenses</div>
+      <h1>Dashboard</h1>
+      <div class="muted">Manage your expenses</div>
     </div>
-    <div class="text-end">
-      <div class="small-note">Signed in as <strong>{{ current_user.username }}</strong></div>
+    <div>
+      <a href="{{ url_for('add_expense') }}" class="btn" style="background: linear-gradient(90deg,#34d399,#06b6d4);">Add Expense</a>
+      <a href="{{ url_for('logout') }}" class="btn" style="background: linear-gradient(90deg,#ff5f6d,#ffc371);">Logout</a>
     </div>
   </div>
 
-<!-- Totals -->
-<div class="row top-summary g-3 mb-4">
-  <div class="col-md-6">
-    <div class="card">
-      <div class="d-flex justify-content-between align-items-center">
-        <div>
-          <div class="muted">You are owed</div>
-          <div class="h3 fw-bold">{{ '{:,.2f}'.format(you_are_owed) }} {{ paid_expenses[0].currency if paid_expenses else 'PKR' }}</div>
-          <div class="small-note">Total pending from others</div>
+  <!-- Totals -->
+  <div class="row top-summary g-3 mb-4">
+    <div class="col-md-6">
+      <div class="card">
+        <div class="d-flex justify-content-between align-items-center">
+          <div>
+            <div class="muted">You are owed</div>
+            <div class="h3 fw-bold">{{ '{:,.2f}'.format(you_are_owed) }} {{ paid_expenses[0].currency if paid_expenses else 'PKR' }}</div>
+            <div class="small-note">Total pending from others</div>
+          </div>
+          <div>
+            <div class="gradient-badge">Incoming</div>
+          </div>
         </div>
-        <div>
-          <div class="gradient-badge">Incoming</div>
+      </div>
+    </div>
+    <div class="col-md-6">
+      <div class="card">
+        <div class="d-flex justify-content-between align-items-center">
+          <div>
+            <div class="muted">You owe</div>
+            <div class="h3 fw-bold">{{ '{:,.2f}'.format(you_owe) }} {{ owes_expenses[0].currency if owes_expenses else 'PKR' }}</div>
+            <div class="small-note">Total you need to pay</div>
+          </div>
+          <div>
+            <div class="gradient-badge">Outgoing</div>
+          </div>
         </div>
       </div>
     </div>
   </div>
-  <div class="col-md-6">
-    <div class="card">
-      <div class="d-flex justify-content-between align-items-center">
-        <div>
-          <div class="muted">You owe</div>
-          <div class="h3 fw-bold">{{ '{:,.2f}'.format(you_owe) }} {{ owes_expenses[0].currency if owes_expenses else 'PKR' }}</div>
-          <div class="small-note">Total you need to pay</div>
-        </div>
-        <div>
-          <div class="gradient-badge">Outgoing</div>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
 
+  <!-- Paid Expenses Table -->
 <!-- Paid Expenses Table -->
 <div class="panel">
   <div class="panel-header mb-3">
@@ -170,39 +205,45 @@
   </div>
 
   {% if paid_expenses %}
-    <div class="row fw-bold text-white small mb-2 d-none d-md-flex px-2">
-      <div class="col-4">Title</div>
-      <div class="col-2 text-end">Total</div>
-      <div class="col-3">Participant</div>
-      <div class="col-2 text-end">Amount</div>
-      <div class="col-1 text-end">Status</div>
+    <div class="row fw-bold text-white small mb-2 d-none d-md-grid" style="grid-template-columns: 2fr 3fr 2fr 2fr 1fr 3fr; gap:10px;">
+      <div>Total</div>
+      <div>Participant</div>
+      <div>Title</div>
+      <div>Amount</div>
+      <div>Status</div>
+      <div>Actions</div>
     </div>
 
     {% for e in paid_expenses %}
       {% for p in e.participants %}
-        <div class="table-row-card d-flex flex-column flex-md-row align-items-start align-items-md-center">
-          <div class="d-flex align-items-center col-md-4 p-0">
-            <div class="avatar">{{ p.username[:2]|upper }}</div>
-            <div>
-              <div class="fw-bold text-white">{{ e.title }}</div>
-              <div class="muted small-note">{{ e.note or '' }}</div>
-              {% if loop.first %}
-              <div class="mt-2">
-                <a href="{{ url_for('update_expense', expense_id=e.id) }}" class="btn btn-sm btn-outline-light me-1">Edit</a>
-                <a href="{{ url_for('delete_expense', expense_id=e.id) }}" class="btn btn-sm btn-outline-danger">Delete</a>
-              </div>
-              {% endif %}
-            </div>
-          </div>
-          <div class="col-md-2 text-md-end mt-2 mt-md-0 p-0">{{ '{:,.2f}'.format(e.total_amount) }} {{ e.currency }}</div>
-          <div class="col-md-3 mt-2 mt-md-0 p-0">{{ p.username }}</div>
-          <div class="col-md-2 text-end mt-2 mt-md-0 p-0">{{ '{:,.2f}'.format(p.amount) }} {{ e.currency }}</div>
-          <div class="col-md-1 text-end mt-2 mt-md-0 p-0">
+        <div class="table-row-card">
+          <div>{{ '{:,.2f}'.format(e.total_amount) }} {{ e.currency }}</div>
+          <div>{{ p.username }}</div>
+          <div>{{ e.title }}<br><span class="small-note">{{ e.note or '' }}</span></div>
+          <div>{{ '{:,.2f}'.format(p.amount) }} {{ e.currency }}</div>
+          <div>
             {% if p.paid %}
               <span class="badge bg-success">Paid</span>
             {% else %}
               <span class="badge bg-warning text-dark">Pending</span>
             {% endif %}
+          </div>
+          <div>
+            {% if not p.paid %}
+              <a href="{{ url_for('update_expense', expense_id=e.id) }}" 
+                 style="padding:6px 12px; border-radius:999px; background: linear-gradient(135deg,#34d399,#06b6d4); color:#021026; font-weight:bold; text-decoration:none; margin-right:5px;">
+                 Edit
+              </a>
+              <form method="POST" action="{{ url_for('remind_participants', expense_id=e.id) }}" style="display:inline;">
+                <button type="submit" style="padding:6px 12px; border-radius:999px; background: linear-gradient(135deg,#06b6d4,#3b82f6); color:#fff; font-weight:bold; border:none; cursor:pointer; margin-right:5px;">
+                  Reminder
+                </button>
+              </form>
+            {% endif %}
+            <a href="{{ url_for('delete_expense', expense_id=e.id) }}" 
+                 style="padding:6px 12px; border-radius:999px; background: linear-gradient(135deg,#ff5f6d,#ffc371); color:#fff; font-weight:bold; text-decoration:none;">
+                 Delete
+              </a>
           </div>
         </div>
       {% endfor %}
@@ -212,48 +253,46 @@
   {% endif %}
 </div>
 
-<!-- Owes Expenses -->
-<div class="panel">
-  <div class="panel-header mb-3">
-    <h5>Money You Owe</h5>
-  </div>
-  {% if owes_expenses %}
-    <div class="list-group list-group-flush">
-      {% for o in owes_expenses %}
-        <div class="list-group-item bg-transparent d-flex justify-content-between align-items-center px-0 py-3">
-          <div class="d-flex align-items-center">
-            <div class="avatar">{{ o.payer[:2]|upper }}</div>
-            <div class="ms-2">
-              <div class="fw-bold text-white">{{ o.title }}</div>
-              <div class="muted small-note">To: <strong>{{ o.payer }}</strong> · {{ o.note or '' }}</div>
+  <!-- Owes Expenses -->
+  <div class="panel">
+    <div class="panel-header mb-3">
+      <h5>Money You Owe</h5>
+    </div>
+    {% if owes_expenses %}
+      <div class="list-group list-group-flush">
+        {% for o in owes_expenses %}
+          <div class="list-group-item bg-transparent d-flex justify-content-between align-items-center px-0 py-3">
+            <div class="d-flex align-items-center">
+              <div class="avatar">{{ o.payer[:2]|upper }}</div>
+              <div class="ms-2">
+                <div class="fw-bold text-white">{{ o.title }}</div>
+                <div class="muted small-note">To: <strong>{{ o.payer }}</strong> · {{ o.note or '' }}</div>
+              </div>
+            </div>
+            <div class="text-end">
+              <div class="fw-bold text-white">{{ '{:,.2f}'.format(o.amount) }} {{ o.currency }}</div>
+              <div class="mt-2">
+                {% if o.paid %}
+                  <span class="badge bg-success">Paid</span>
+                {% else %}
+                  <form action="{{ url_for('mark_paid', expense_id=o.expense_id) }}" method="post" class="d-inline">
+                    <button type="submit" class="btn btn-sm btn-outline-light" style="border-radius: 999px;">Mark as Paid</button>
+                  </form>
+                {% endif %}
+              </div>
             </div>
           </div>
-          <div class="text-end">
-            <div class="fw-bold text-white">{{ '{:,.2f}'.format(o.amount) }} {{ o.currency }}</div>
-            <div class="mt-2">
-              {% if o.paid %}
-                <span class="badge bg-success">Paid</span>
-              {% else %}
-                <form action="{{ url_for('mark_paid', expense_id=o.expense_id) }}" method="post" class="d-inline">
-                  <button type="submit" class="btn btn-sm btn-outline-light" style="border-radius: 999px;">Mark as Paid</button>
-                </form>
-              {% endif %}
-            </div>
-          </div>
-        </div>
-      {% endfor %}
-    </div>
-  {% else %}
-    <div class="alert alert-info mb-0">You don't owe anything yet.</div>
-  {% endif %}
-</div>
-
-    </div>
+        {% endfor %}
+      </div>
+    {% else %}
+      <div class="alert alert-info mb-0">You don't owe anything yet.</div>
+    {% endif %}
   </div>
 
   <div class="text-center muted small mt-4">
     Tip: click <strong>Mark as Paid</strong> once you settle an expense to keep your balances updated.
   </div>
+
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
