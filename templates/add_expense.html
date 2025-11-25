@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add Expense</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            margin: 0;
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(180deg, #0f172a 0%, #071033 100%);
+            color: #fff;
+        }
+        .card-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 70vh;
+            padding: 20px;
+        }
+        .card-inner {
+            background: linear-gradient(135deg, rgba(255,255,255,0.03), rgba(0,0,0,0.05));
+            border-radius: 16px;
+            padding: 40px;
+            max-width: 500px;
+            width: 100%;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+        }
+        h3 {
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        input, textarea {
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 15px;
+            border-radius: 8px;
+            border: none;
+            outline: none;
+            background: rgba(255,255,255,0.1);
+            color: #fff;
+        }
+        input::placeholder, textarea::placeholder {
+            color: rgba(255,255,255,0.6);
+        }
+        .form-check-label {
+            color: #fff;
+        }
+        .btn-custom {
+            width: 100%;
+            padding: 12px;
+            border-radius: 999px;
+            font-weight: bold;
+            border: none;
+            cursor: pointer;
+            background: linear-gradient(315deg, #ffb347 0%, #ffcc33 74%);
+            color: #fff;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .btn-custom:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+        }
+        .flash-container {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 9999;
+            text-align: center;
+        }
+        .flash-message {
+            padding: 12px 20px;
+            border-radius: 12px;
+            font-weight: 600;
+            margin-bottom: 10px;
+            color: #fff;
+            display: inline-block;
+        }
+    </style>
+</head>
+<body>
+    <!-- Flash Messages -->
+     {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+        <div style="position: fixed; top: 20px; right: 20px; z-index: 9999;">
+        {% for category, message in messages %}
+            {% set bg_color = '' %}
+            {% if category == 'success' %}
+            {% set bg_color = 'linear-gradient(135deg, #34d399, #06b6d4)' %}
+            {% elif category == 'danger' %}
+            {% set bg_color = 'linear-gradient(135deg, #ff5f6d, #ffc371)' %}
+            {% endif %}
+            <div class="flash-message" style="background: '{{ bg_color }}';">
+                {{ message }}
+            </div>
+
+        {% endfor %}
+        </div>
+    {% endif %}
+    {% endwith %}
+
+
+    <div class="card-container">
+        <div class="card-inner">
+            <h3>Add Expense</h3>
+            <form method="POST" action="{{ url_for('add_expense') }}">
+                <input type="text" name="title" placeholder="Expense Title" required>
+                <input type="number" step="0.01" name="total_amount" placeholder="Total Amount" required>
+                <input type="text" name="currency" placeholder="Currency (e.g., USD, PKR)" value="PKR">
+                <textarea name="note" placeholder="Note"></textarea>
+
+                {% for user in users %}
+                    <div class="form-check mb-2">
+                        <input class="form-check-input" type="checkbox" name="participants" value="{{ user.id }}" id="user{{ user.id }}">
+                        <label class="form-check-label" for="user{{ user.id }}">
+                            {{ user.username }}
+                        </label>
+                    </div>
+                {% endfor %}
+
+                <button type="submit" class="btn-custom mt-3">Add Expense</button>
+            </form>
+        </div>
+    </div>
+</body>
+</html>

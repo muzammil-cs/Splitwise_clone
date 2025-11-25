@@ -1,0 +1,33 @@
+   {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+        <div style="position: fixed; top: 20px; right: 20px; z-index: 9999;">
+        {% for category, message in messages %}
+            {% set bg_color = '' %}
+            {% if category == 'success' %}
+            {% set bg_color = 'linear-gradient(135deg, #34d399, #06b6d4)' %}
+            {% elif category == 'danger' %}
+            {% set bg_color = 'linear-gradient(135deg, #ff5f6d, #ffc371)' %}
+            {% endif %}
+            <div class="flash-message" style="background: '{{ bg_color }}';">
+                {{ message }}
+            </div>
+
+        {% endfor %}
+        </div>
+    {% endif %}
+    {% endwith %}
+
+<div style="display:flex; justify-content:center; align-items:center; min-height:70vh; background: linear-gradient(180deg, #0f172a 0%, #071033 100%); padding:20px;">
+  <div style="background: linear-gradient(135deg, rgba(255,255,255,0.03), rgba(0,0,0,0.05)); border-radius:16px; padding:40px; width:100%; max-width:500px; box-shadow:0 10px 25px rgba(0,0,0,0.5); text-align:center;">
+    
+    <h3 style="color:#fff; margin-bottom:15px;">Confirm Deletion</h3>
+    <p style="color:rgba(255,255,255,0.65); margin-bottom:30px;">You are about to delete <strong>{{ expense.title }}</strong>. This action cannot be undone.</p>
+    
+    <form method="POST" action="{{ url_for('delete_expense', expense_id=expense.id) }}">
+      <div style="display:flex; justify-content:center; gap:15px;">
+        <button type="submit" style="padding:12px 30px; border-radius:999px; font-weight:bold; border:none; background: linear-gradient(135deg, #ff5f6d, #ffc371); color:#fff; cursor:pointer;">Delete</button>
+        <a href="{{ url_for('dashboard') }}" style="padding:12px 30px; border-radius:999px; font-weight:bold; background: linear-gradient(135deg, #6c757d, #495057); color:#fff; text-decoration:none;">Cancel</a>
+      </div>
+    </form>
+  </div>
+</div>
